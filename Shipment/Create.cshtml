@@ -1,0 +1,254 @@
+﻿@model LogiTech.Models.Shipment
+@{
+    ViewData["Title"] = "New Shipment";
+    ViewData["ActivePage"] = "Shipment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>New Shipment Booking</h2>
+        <p>Create shipments with live international currency conversion</p>
+    </div>
+    <a class="btn btn-outline" asp-action="Index">← Back</a>
+</div>
+
+<div class="grid-2" style="align-items:start;">
+    <div class="card">
+        <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:20px;
+                   padding-bottom:12px;border-bottom:1px solid var(--border);">
+            Shipment Details
+        </h3>
+
+        <form method="post" asp-action="Create">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Tracking Number</label>
+                <input class="form-control" asp-for="TrackingNumber"
+                       placeholder="Leave blank to auto-generate (e.g. LOG-XXXX-XX)" />
+                <span asp-validation-for="TrackingNumber" style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Customer Name <span style="color:var(--red);">*</span></label>
+                <input class="form-control" asp-for="CustomerName"
+                       placeholder="Full name of customer" required />
+                <span asp-validation-for="CustomerName" style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Delivery Address <span style="color:var(--red);">*</span></label>
+                <input class="form-control" asp-for="DeliveryAddress"
+                       placeholder="Street address, city, postal code, country" required />
+                <span asp-validation-for="DeliveryAddress" style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Package Weight (kg) <span style="color:var(--red);">*</span></label>
+                    <input class="form-control" asp-for="WeightKg"
+                           type="number" step="0.1" min="0.1" placeholder="0.0" required />
+                    <span asp-validation-for="WeightKg" style="color:var(--red);font-size:0.78rem;"></span>
+                </div>
+                <div class="form-group">
+                    <label>Priority Level</label>
+                    <select class="form-control" asp-for="PriorityLevel">
+                        <option>Standard (3-5 days)</option>
+                        <option>Express (1-2 days)</option>
+                        <option>Overnight</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Shipping Method</label>
+                    <select class="form-control" asp-for="ShippingMethod">
+                        <option>Standard Delivery</option>
+                        <option>Express Delivery</option>
+                        <option>Overnight Courier</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Customer Currency</label>
+                    <select class="form-control" asp-for="Currency"
+                            id="customerCurrency" onchange="convertNow()">
+                        <option value="ZAR">ZAR — South African Rand</option>
+                        <option value="USD">USD — US Dollar</option>
+                        <option value="GBP">GBP — British Pound</option>
+                        <option value="EUR">EUR — Euro</option>
+                        <option value="CAD">CAD — Canadian Dollar</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Currency Conversion Block -->
+            <div style="background:var(--navy);border:1px solid var(--border);
+                        border-radius:var(--radius);padding:16px;margin-bottom:20px;">
+                <label style="font-size:0.82rem;color:var(--muted);
+                              display:block;margin-bottom:8px;">
+                    Package Estimated Value
+                </label>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <input class="form-control" id="valueInput" asp-for="EstimatedValue"
+                           type="number" step="0.01" min="0"
+                           style="max-width:160px;" oninput="convertNow()" />
+                    <select class="form-control" id="fromCurrency"
+                            style="max-width:100px;" onchange="convertNow()">
+                        <option value="ZAR">ZAR</option>
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CAD">CAD</option>
+                    </select>
+                    <div id="loadingSpinner" style="display:none;color:var(--muted);
+                                                    font-size:0.8rem;">
+                        ⟳ Loading rates...
+                    </div>
+                </div>
+                <div id="convertedResult"
+                     style="margin-top:12px;font-size:0.9rem;font-weight:600;color:var(--text);">
+                    Estimated Value in Customer Currency: —
+                </div>
+                <div id="rateInfo"
+                     style="font-size:0.72rem;color:var(--muted);margin-top:4px;">
+                    Fetching live rates...
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    Create Shipment
+                </button>
+                <a class="btn btn-outline" asp-action="Index"
+                   style="flex:1;text-align:center;">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right column -->
+    <div>
+        <!-- Recent Shipments -->
+        <div class="card" style="margin-bottom:20px;">
+            <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:16px;">
+                Recently Created Shipments
+            </h3>
+            @if (ViewBag.RecentShipments != null)
+            {
+                @foreach (var s in (List<LogiTech.Models.Shipment>)ViewBag.RecentShipments)
+                {
+                    <div style="display:flex;justify-content:space-between;
+                                align-items:center;padding:10px 0;
+                                border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight:600;font-size:0.88rem;
+                                        color:var(--accent);">
+                                @s.TrackingNumber
+                            </div>
+                            <div style="font-size:0.75rem;color:var(--muted);">
+                                @s.CustomerName (@s.Currency)
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:0.82rem;color:var(--muted);">
+                                @s.WeightKg kg
+                            </span>
+                            <span class="badge @(s.Status=="In Transit"?"badge-blue":"badge-orange")">
+                                @s.Status
+                            </span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="color:var(--muted);font-size:0.85rem;">No recent shipments.</p>
+            }
+        </div>
+
+        <!-- Live Exchange Rates Card -->
+        <div class="card">
+            <div class="flex-between" style="margin-bottom:16px;">
+                <h3 style="font-size:0.95rem;font-weight:600;">Live Exchange Rates</h3>
+                <button class="btn btn-outline btn-sm" onclick="refreshRates()">
+                    ↻ Refresh
+                </button>
+            </div>
+            <div id="ratesGrid" class="grid-2" style="gap:12px;">
+                <div style="color:var(--muted);font-size:0.85rem;">Loading...</div>
+            </div>
+            <div id="ratesTimestamp"
+                 style="font-size:0.72rem;color:var(--muted);margin-top:12px;">
+                Fetching rates...
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Rates loaded from C# ViewBag on page load, then refreshed live
+    let rates = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        ViewBag.ExchangeRates ?? new Dictionary<string, decimal>
+        {
+            ["ZAR"] = 1, ["USD"] = 18.50m,
+            ["GBP"] = 23.15m, ["EUR"] = 19.82m, ["CAD"] = 13.45m
+        }
+    ));
+
+    // Show rates in the card on load
+    renderRatesCard();
+
+    function convertNow() {
+        const amount = parseFloat(document.getElementById('valueInput').value) || 0;
+        const from   = document.getElementById('fromCurrency').value;
+        const to     = document.getElementById('customerCurrency').value;
+
+        if (!rates[from] || !rates[to]) return;
+
+        // Convert: amount (in 'from') → ZAR → target currency
+        const inZAR  = amount * rates[from];
+        const result = (inZAR / rates[to]).toFixed(2);
+
+        document.getElementById('convertedResult').textContent =
+            `Estimated Value in Customer Currency: ${result} ${to}`;
+        document.getElementById('rateInfo').textContent =
+            `1 ${from} = ${(rates[from] / rates[to]).toFixed(4)} ${to} (live rate)`;
+    }
+
+    async function refreshRates() {
+        document.getElementById('loadingSpinner').style.display = 'inline';
+        try {
+            const res  = await fetch('/Shipment/GetRates');
+            const data = await res.json();
+            rates = data;
+            renderRatesCard();
+            convertNow();
+        } catch (e) {
+            console.error('Rate fetch failed', e);
+        }
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+
+    function renderRatesCard() {
+        const pairs = [
+            ['USD','ZAR'], ['EUR','ZAR'], ['GBP','ZAR'], ['CAD','ZAR']
+        ];
+        const grid = document.getElementById('ratesGrid');
+        grid.innerHTML = pairs.map(([from, to]) => `
+            <div>
+                <div style="font-size:0.75rem;color:var(--muted);">${from} / ${to}</div>
+                <div style="font-weight:600;">
+                    1 ${from} = ${rates[from] ? rates[from].toFixed(2) : '—'} ${to}
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('ratesTimestamp').textContent =
+            'Last updated: ' + new Date().toLocaleTimeString();
+    }
+
+    // Auto-refresh rates every 15 minutes
+    setInterval(refreshRates, 15 * 60 * 1000);
+</script>

@@ -1,0 +1,83 @@
+﻿@model LogiTech.Models.DeliveryStop
+@{
+    ViewData["Title"] = "Edit Delivery Stop";
+    ViewData["ActivePage"] = "Route";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Edit Delivery Stop</h2>
+        <p>Update stop details</p>
+    </div>
+    <a class="btn btn-outline" asp-action="Index">← Back</a>
+</div>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <form method="post" asp-action="Edit">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group">
+                <label>Customer Name</label>
+                <input class="form-control" asp-for="CustomerName" />
+                <span asp-validation-for="CustomerName"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Tracking Number</label>
+                <input class="form-control" asp-for="TrackingNumber" />
+            </div>
+
+            <div class="form-group">
+                <label>Delivery Address <span style="color:var(--red);">*</span></label>
+                <input class="form-control" asp-for="Address" required />
+                <span asp-validation-for="Address"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Priority</label>
+                <select class="form-control" asp-for="Priority">
+                    <option value="HIGH">HIGH — deliver first</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW — deliver last</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Optimal Order</label>
+                <input class="form-control" asp-for="OptimalOrder" type="number" />
+            </div>
+
+            <div class="form-group">
+                <label>ETA</label>
+                <input class="form-control" asp-for="ETA" placeholder="e.g. 09:30" />
+            </div>
+
+            <div class="form-group">
+                <label>Distance From Previous (km)</label>
+                <input class="form-control" asp-for="DistanceFromPrevKm"
+                       type="number" step="0.01" />
+            </div>
+
+            <div class="form-group">
+                <label>Completed</label>
+                <select class="form-control" asp-for="IsCompleted">
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    Save Changes
+                </button>
+                <a class="btn btn-outline" asp-action="Index"
+                   style="flex:1;text-align:center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

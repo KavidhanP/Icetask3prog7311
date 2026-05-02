@@ -1,0 +1,79 @@
+﻿@model LogiTech.Models.DeliveryStop
+@{
+    ViewData["Title"] = "Add Stop";
+    ViewData["ActivePage"] = "Route";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Add Delivery Stop</h2>
+        <p>Address will be geocoded automatically via OpenRouteService</p>
+    </div>
+    <a class="btn btn-outline" asp-action="Index">← Back to Route</a>
+</div>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <form method="post" asp-action="AddStop">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Customer Name</label>
+                <input class="form-control" asp-for="CustomerName"
+                       placeholder="e.g. John Doe" />
+                <span asp-validation-for="CustomerName"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Tracking Number</label>
+                <input class="form-control" asp-for="TrackingNumber"
+                       placeholder="e.g. LOG-9842-01" />
+            </div>
+
+            <div class="form-group">
+                <label>
+                    Delivery Address <span style="color:var(--red);">*</span>
+                </label>
+                <input class="form-control" asp-for="Address"
+                       placeholder="Full street address, city, country"
+                       required />
+                <span asp-validation-for="Address"
+                      style="color:var(--red);font-size:0.78rem;"></span>
+                <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">
+                    Be specific — this is sent to the geocoding API to get
+                    real coordinates
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Priority</label>
+                <select class="form-control" asp-for="Priority">
+                    <option value="HIGH">HIGH — deliver first</option>
+                    <option value="MEDIUM" selected>MEDIUM</option>
+                    <option value="LOW">LOW — deliver last</option>
+                </select>
+            </div>
+
+            <!-- Info box -->
+            <div style="background:rgba(37,99,235,0.05);
+                        border:1px solid rgba(37,99,235,0.2);
+                        border-radius:var(--radius);padding:12px;
+                        margin-bottom:20px;font-size:0.8rem;
+                        color:var(--muted);line-height:1.6;">
+                ℹ️ After saving, this stop will be automatically geocoded
+                and included in the next route optimisation run.
+                HIGH priority stops always go first regardless of distance.
+            </div>
+
+            <div style="display:flex;gap:12px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">
+                    Add Stop + Geocode
+                </button>
+                <a class="btn btn-outline" asp-action="Index"
+                   style="flex:1;text-align:center;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

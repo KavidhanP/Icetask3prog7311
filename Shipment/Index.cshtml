@@ -1,0 +1,74 @@
+﻿@model List<LogiTech.Models.Shipment>
+@{
+    ViewData["Title"] = "Workflow";
+    ViewData["ActivePage"] = "Shipment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Primary Workflow</h2>
+        <p>Dispatch → Assign → Track → Deliver</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Shipment" asp-action="Create">
+        + New Shipment
+    </a>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tracking #</th>
+                    <th>Customer</th>
+                    <th>Address</th>
+                    <th>Weight</th>
+                    <th>Currency</th>
+                    <th>Value</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td style="color:var(--accent);font-weight:500;">
+                            @s.TrackingNumber
+                        </td>
+                        <td>@s.CustomerName</td>
+                        <td>@s.DeliveryAddress</td>
+                        <td>@s.WeightKg kg</td>
+                        <td>@s.Currency</td>
+                        <td>@s.EstimatedValue</td>
+                        <td>
+                            <span class="badge @(s.PriorityLevel.Contains("Express") ? "badge-red" : s.PriorityLevel.Contains("Overnight") ? "badge-orange" : "badge-green")">
+                                @s.PriorityLevel
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge @(s.Status == "In Transit" ? "badge-blue" : s.Status == "Delivered" ? "badge-green" : "badge-orange")">
+                                @s.Status
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="card" style="text-align:center;padding:48px;">
+        <div style="font-size:2rem;margin-bottom:12px;">📦</div>
+        <h3 style="margin-bottom:8px;">No shipments yet</h3>
+        <p style="color:var(--muted);margin-bottom:20px;">
+            Create your first shipment to get started
+        </p>
+        <a class="btn btn-primary" asp-controller="Shipment" asp-action="Create">
+            + New Shipment
+        </a>
+    </div>
+}

@@ -1,0 +1,229 @@
+﻿@model List<LogiTech.Models.DeliveryStop>
+@{
+    ViewData["Title"] = "Route Optimisation";
+    ViewData["ActivePage"] = "Route";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Real-Time Fleet Route Optimisation</h2>
+        <p>OpenRouteService API | Nearest-Neighbour Algorithm</p>
+    </div>
+    <a class="btn btn-primary" asp-action="AddStop">+ Add Delivery Stop</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card" style="text-align:center;padding:48px;">
+        <div style="font-size:2rem;margin-bottom:12px;">🗺️</div>
+        <h3 style="margin-bottom:8px;">No stops in queue</h3>
+        <p style="color:var(--muted);margin-bottom:20px;">
+            Add delivery stops and the route will be optimised automatically
+        </p>
+        <a class="btn btn-primary" asp-action="AddStop">Add First Stop</a>
+    </div>
+}
+else
+{
+    <div class="grid-2" style="align-items:start;">
+
+        <!-- Left: Optimised Stop List -->
+        <div class="card">
+            <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:16px;">
+                Optimal Delivery Sequence
+            </h3>
+
+            @foreach (var stop in Model.OrderBy(s => s.OptimalOrder))
+            {
+                var priorityColor = stop.Priority == "HIGH" ? "var(--red)" :
+                stop.Priority == "MEDIUM" ? "var(--orange)" :
+                "var(--muted)";
+                var badgeClass = stop.Priority == "HIGH" ? "badge-red" :
+                stop.Priority == "MEDIUM" ? "badge-orange" :
+                "badge-green";
+                <div style="display:flex;align-items:center;gap:14px;padding:14px;
+                                    border:1px solid var(--border);
+                                    border-radius:var(--radius);margin-bottom:10px;">
+
+                    <!-- Stop number circle -->
+                    <div style="width:32px;height:32px;border-radius:50%;
+                                        background:var(--blue);color:#fff;
+                                        display:flex;align-items:center;
+                                        justify-content:center;font-weight:700;
+                                        flex-shrink:0;">
+                        @stop.OptimalOrder
+                    </div>
+
+                    <!-- Stop info -->
+                    <div style="flex:1;">
+                        <div style="font-weight:600;font-size:0.9rem;">
+                            @stop.Address
+                        </div>
+                        <div style="font-size:0.76rem;color:@priorityColor;
+                                            font-weight:600;margin-top:2px;">
+                            @stop.Priority PRIORITY
+                            @if (!string.IsNullOrEmpty(stop.ETA))
+                            {
+                                <span style="color:var(--muted);font-weight:400;">
+                                    | ETA: @stop.ETA
+                                </span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(stop.CustomerName))
+                        {
+                            <div style="font-size:0.75rem;color:var(--muted);">
+                                @stop.CustomerName
+                                @if (!string.IsNullOrEmpty(stop.TrackingNumber))
+                                {
+                                    <span>— @stop.TrackingNumber</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Distance + action buttons -->
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div style="font-size:0.85rem;color:var(--muted);">
+                            @stop.DistanceFromPrevKm km
+                        </div>
+                        <div style="display:flex;gap:6px;margin-top:6px;">
+                            <form method="post" asp-action="MarkComplete">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@stop.Id" />
+                                <button type="submit"
+                                        class="btn btn-outline btn-sm"
+                                        style="font-size:0.7rem;">
+                                    ✓ Done
+                                </button>
+                            </form>
+                            <form method="post" asp-action="DeleteStop">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@stop.Id" />
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm"
+                                        style="font-size:0.7rem;">
+                                    ✕
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        <!-- Route summary bar -->
+        <div style="background:var(--navy);border:1px solid var(--border);
+                        border-radius:var(--radius);padding:14px;
+                        margin-top:4px;text-align:center;">
+            <div style="font-size:0.82rem;color:var(--muted);">
+                Depot →
+                @string.Join(" → ", Model
+                                .OrderBy(s => s.OptimalOrder)
+                                .Select(s => "Stop " + s.OptimalOrder))
+            </div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px;">
+                Total Distance: @ViewBag.TotalDistance km |
+                @ViewBag.TotalStops stops
+            </div>
+        </div>
+
+        <!-- Re-optimise button -->
+        <a asp-action="Index" class="btn btn-primary"
+           style="width:100%;text-align:center;margin-top:12px;display:block;">
+            ↻ Re-optimise Route
+        </a>
+    </div>
+
+    <!-- Right: Stats -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+        <!-- Summary numbers -->
+        <div class="card">
+            <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:16px;">
+                Route Summary
+            </h3>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);
+                            gap:16px;text-align:center;">
+                <div>
+                    <div style="font-family:'Syne',sans-serif;font-size:1.6rem;
+                                    font-weight:700;color:var(--accent);">
+                        @ViewBag.TotalStops
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--muted);">
+                        Total Stops
+                    </div>
+                </div>
+                <div>
+                    <div style="font-family:'Syne',sans-serif;font-size:1.6rem;
+                                    font-weight:700;color:var(--accent);">
+                        @ViewBag.TotalDistance km
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--muted);">
+                        Total Distance
+                    </div>
+                </div>
+                <div>
+                    <div style="font-family:'Syne',sans-serif;font-size:1.6rem;
+                                    font-weight:700;color:var(--red);">
+                        @ViewBag.HighCount
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--muted);">
+                        High Priority
+                    </div>
+                </div>
+                <div>
+                    <div style="font-family:'Syne',sans-serif;font-size:1.6rem;
+                                    font-weight:700;color:var(--orange);">
+                        @ViewBag.MediumCount
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--muted);">
+                        Medium Priority
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority breakdown list -->
+        <div class="card">
+            <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:14px;">
+                Stop Priority Breakdown
+            </h3>
+            @foreach (var stop in Model.OrderBy(s => s.OptimalOrder))
+                {
+                    var bc = stop.Priority == "HIGH" ? "badge-red" :
+                    stop.Priority == "MEDIUM" ? "badge-orange" :
+                    "badge-green";
+                    <div style="display:flex;justify-content:space-between;
+                                        align-items:center;padding:8px 0;
+                                        border-bottom:1px solid var(--border);">
+                        <div style="font-size:0.85rem;min-width:60px;">
+                            Stop @stop.OptimalOrder
+                        </div>
+                        <div style="font-size:0.82rem;color:var(--muted);
+                                            flex:1;padding:0 12px;
+                                            white-space:nowrap;overflow:hidden;
+                                            text-overflow:ellipsis;">
+                            @stop.Address
+                        </div>
+                        <span class="badge @bc">@stop.Priority</span>
+                    </div>
+                }
+            </div>
+
+            <!-- How it works info box -->
+            <div class="card" style="background:rgba(37,99,235,0.05);
+                                          border-color:rgba(37,99,235,0.2);">
+                <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;">
+                    ℹ️ How optimisation works
+                </div>
+                <div style="font-size:0.8rem;line-height:1.6;color:var(--text);">
+                    HIGH priority stops are dispatched first. Remaining stops are
+                    sorted using a nearest-neighbour algorithm with real driving
+                    distances from the OpenRouteService API. ETAs assume
+                    40 km/h average with a 10 min stop allowance from
+                    an 08:00 depot departure.
+                </div>
+            </div>
+        </div>
+    </div>
+}

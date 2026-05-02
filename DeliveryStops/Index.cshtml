@@ -1,0 +1,60 @@
+﻿@model IEnumerable<LogiTech.Models.DeliveryStop>
+@{
+    ViewData["Title"] = "Delivery Stops";
+    ViewData["ActivePage"] = "Route";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Delivery Stops</h2>
+        <p>All active delivery stops</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create">+ Add Stop</a>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Address</th>
+                <th>Customer</th>
+                <th>Tracking #</th>
+                <th>Priority</th>
+                <th>ETA</th>
+                <th>Distance (km)</th>
+                <th>Completed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.OptimalOrder</td>
+                    <td>@item.Address</td>
+                    <td>@item.CustomerName</td>
+                    <td style="color:var(--accent);">@item.TrackingNumber</td>
+                    <td>
+                        <span class="badge @(item.Priority == "HIGH" ? "badge-red" : item.Priority == "MEDIUM" ? "badge-orange" : "badge-green")">
+                            @item.Priority
+                        </span>
+                    </td>
+                    <td>@item.ETA</td>
+                    <td>@item.DistanceFromPrevKm km</td>
+                    <td>
+                        <span class="badge @(item.IsCompleted ? "badge-green" : "badge-orange")">
+                            @(item.IsCompleted ? "Yes" : "No")
+                        </span>
+                    </td>
+                    <td style="display:flex;gap:8px;">
+                        <a class="btn btn-outline btn-sm" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
+                        <a class="btn btn-outline btn-sm" asp-action="Details" asp-route-id="@item.Id">Details</a>
+                        <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

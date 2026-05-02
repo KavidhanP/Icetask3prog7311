@@ -1,0 +1,82 @@
+﻿@model LogiTech.Models.DeliveryStop
+@{
+    ViewData["Title"] = "Stop Details";
+    ViewData["ActivePage"] = "Route";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-header flex-between">
+    <div>
+        <h2>Stop Details</h2>
+        <p>Full delivery stop information</p>
+    </div>
+    <a class="btn btn-outline" asp-action="Index">← Back</a>
+</div>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <table>
+            <tbody>
+                <tr>
+                    <th style="width:180px;">Customer Name</th>
+                    <td>@Model.CustomerName</td>
+                </tr>
+                <tr>
+                    <th>Tracking Number</th>
+                    <td style="color:var(--accent);">@Model.TrackingNumber</td>
+                </tr>
+                <tr>
+                    <th>Address</th>
+                    <td>@Model.Address</td>
+                </tr>
+                <tr>
+                    <th>Priority</th>
+                    <td>
+                        <span class="badge @(Model.Priority == "HIGH" ? "badge-red" : Model.Priority == "MEDIUM" ? "badge-orange" : "badge-green")">
+                            @Model.Priority
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Optimal Order</th>
+                    <td>@Model.OptimalOrder</td>
+                </tr>
+                <tr>
+                    <th>ETA</th>
+                    <td>@Model.ETA</td>
+                </tr>
+                <tr>
+                    <th>Distance From Prev</th>
+                    <td>@Model.DistanceFromPrevKm km</td>
+                </tr>
+                <tr>
+                    <th>Latitude</th>
+                    <td>@Model.Latitude</td>
+                </tr>
+                <tr>
+                    <th>Longitude</th>
+                    <td>@Model.Longitude</td>
+                </tr>
+                <tr>
+                    <th>Completed</th>
+                    <td>
+                        <span class="badge @(Model.IsCompleted ? "badge-green" : "badge-orange")">
+                            @(Model.IsCompleted ? "Yes" : "No")
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Created At</th>
+                    <td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="display:flex;gap:10px;margin-top:20px;">
+            <a class="btn btn-outline btn-sm"
+               asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+            <a class="btn btn-danger btn-sm"
+               asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+        </div>
+    </div>
+</div>
